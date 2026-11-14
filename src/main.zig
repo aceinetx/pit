@@ -28,7 +28,7 @@ pub fn main(init: std.process.Init) !void {
         };
         defer root.deinit(init.gpa, true);
 
-        pit.reduce.beta_reduce_all_the_way(init.gpa, root) catch |e| {
+        pit.reduce.beta_reduce_all_the_way(init.gpa, root, .{}) catch |e| {
             console.printn(init.io, "beta reduction failed: {}", .{e});
             continue;
         };
