@@ -13,7 +13,7 @@ fn expr_variable_available(ex: *expr.Expr, name: expr.ExprVariable) bool {
         },
         .application => |*application| {
             if (expr_variable_available(application.lhs, name)) return true;
-            if (expr_variable_available(application.lhs, name)) return true;
+            if (expr_variable_available(application.rhs, name)) return true;
             return false;
         },
     }
@@ -92,14 +92,20 @@ pub fn beta_reduce(allocator: std.mem.Allocator, ex: *expr.Expr) !bool {
 }
 
 pub fn beta_reduce_all_the_way(allocator: std.mem.Allocator, ex: *expr.Expr) !void {
-    // std.debug.print("BETA REDUCE ALL THE WAY\n", .{});
-    // ex.print(0);
+    while (true) {
+        if (!try beta_reduce(allocator, ex)) break;
+    }
+}
+
+pub fn beta_reduce_all_the_way_debug(allocator: std.mem.Allocator, ex: *expr.Expr) !void {
+    std.debug.print("BETA REDUCE ALL THE WAY\n", .{});
+    ex.print(0);
 
     while (true) {
         if (!try beta_reduce(allocator, ex)) break;
 
-        // std.debug.print("REDUCE\n", .{});
-        // ex.print(0);
+        std.debug.print("REDUCE\n", .{});
+        ex.print(0);
     }
 }
 
@@ -306,3 +312,36 @@ test "Reduce 15 (church numerals 0 + 1)" {
     try std.testing.expectEqualStrings("f", root.function.expr.function.expr.application.lhs.variable.name);
     try std.testing.expectEqualStrings("x", root.function.expr.function.expr.application.rhs.variable.name);
 }
+
+test "Reduce 16 (church numerals 2 - 1)" {
+    const allocator = std.testing.allocator;
+
+    var root = try parser.parse_quick(allocator,
+        \\ (\lhs.\rhs.rhs (\n.\f.\x.n (\g.\h.h (g f)) (\u.x) (\u.u)) lhs) ((\n.\f.\x.f (n f x)) ((\n.\f.\x.f (n f x)) (\f.\x.x))) ((\n.\f.\x.f (n f x)) (\f.\x.x))
+    );
+    defer root.deinit(allocator, true);
+
+    try beta_reduce_all_the_way(allocator, root);
+
+    // (\f.\x.f x)
+
+    root.print(0);
+    try std.testing.expectEqualStrings("f", root.function.arg.name);
+    try std.testing.expectEqualStrings("x", root.function.expr.function.arg.name);
+    try std.testing.expectEqualStrings("f", root.function.expr.function.expr.application.lhs.variable.name);
+    try std.testing.expectEqualStrings("x", root.function.expr.function.expr.application.rhs.variable.name);
+}
+
+// test "Reduce 17 (Y combinator countdown)" {
+//     const allocator = std.testing.allocator;
+//
+//     var root = try parser.parse_quick(allocator,
+//         \\ (\f.(\x.f (x x)) (\x.f (x x))) (\r.\n.(\n.n (\_.\T.\F.F) (\T.\F.T)) n OK (r ((\n.\f.\x.n (\g.\h.h (g f)) (\u.x) (\u.u)) n))) ((\n.\f.\x.f (n f x)) ((\n.\f.\x.f (n f x)) (\f.\x.f x)))
+//     );
+//     defer root.deinit(allocator, true);
+//
+//     try beta_reduce_all_the_way_debug(allocator, root);
+//
+//     root.print(0);
+//     try std.testing.expectEqualStrings("OK", root.variable.name);
+// }
