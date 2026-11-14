@@ -34,7 +34,7 @@ pub const Expr = union(ExprTag) {
         return new;
     }
 
-    pub fn print(self: *@This(), indent: usize) void {
+    pub fn dump(self: *@This(), indent: usize) void {
         for (0..indent) |_| {
             std.debug.print("....", .{});
         }
@@ -44,14 +44,54 @@ pub const Expr = union(ExprTag) {
             },
             .function => |*ex| {
                 std.debug.print("- \\{s}({}).\n", .{ ex.arg.name, ex.arg.static });
-                ex.expr.print(indent + 1);
+                ex.expr.dump(indent + 1);
             },
             .application => |*ex| {
                 std.debug.print("- Application\n", .{});
-                ex.lhs.print(indent + 1);
-                ex.rhs.print(indent + 1);
+                ex.lhs.dump(indent + 1);
+                ex.rhs.dump(indent + 1);
             },
         }
+    }
+
+    pub fn display(self: *@This(), allocator: std.mem.Allocator, sb: *std.ArrayList(u8)) !void {
+        switch (self.*) {
+            .variable => |*ex| {
+                try sb.appendSlice(allocator, ex.name);
+            },
+            .function => |*ex| {
+                try sb.append(allocator, '\\');
+                try sb.appendSlice(allocator, ex.arg.name);
+                try sb.append(allocator, '.');
+                try ex.expr.display(allocator, sb);
+            },
+            .application => |*ex| {
+                {
+                    const do_parens = ex.lhs.* == .function;
+                    if (do_parens) try sb.append(allocator, '(');
+                    try ex.lhs.display(allocator, sb);
+                    if (do_parens) try sb.append(allocator, ')');
+                }
+
+                try sb.append(allocator, ' ');
+
+                {
+                    const do_parens = ex.rhs.* != .variable;
+                    if (do_parens) try sb.append(allocator, '(');
+                    try ex.rhs.display(allocator, sb);
+                    if (do_parens) try sb.append(allocator, ')');
+                }
+            },
+        }
+    }
+
+    pub fn display_dump(self: *@This(), allocator: std.mem.Allocator) void {
+        var sb = std.ArrayList(u8).empty;
+        defer sb.deinit(allocator);
+
+        if (self.display(allocator, &sb)) |_| {
+            std.debug.print("{s}\n", .{sb.items});
+        } else |_| {}
     }
 };
 

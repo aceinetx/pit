@@ -13,8 +13,6 @@ pub fn main(init: std.process.Init) !void {
             break;
         }
 
-        console.printn(init.io, "{s}", .{buffer});
-
         var tokens = pit.lexer.tokenize(init.gpa, buffer) catch |e| {
             console.printn(init.io, "tokenize fail: {}", .{e});
             continue;
@@ -28,10 +26,18 @@ pub fn main(init: std.process.Init) !void {
         };
         defer root.deinit(init.gpa, true);
 
-        pit.reduce.beta_reduce_all_the_way(init.gpa, root, .{}) catch |e| {
+        pit.reduce.beta_reduce_all_the_way(init.gpa, root, .{ .debug = true }) catch |e| {
             console.printn(init.io, "beta reduction failed: {}", .{e});
             continue;
         };
-        root.print(0);
+
+        {
+            var sb = std.ArrayList(u8).empty;
+            defer sb.deinit(init.gpa);
+
+            if (root.display(init.gpa, &sb)) |_| {
+                console.printn(init.io, "{s}", .{sb.items});
+            } else |_| {}
+        }
     }
 }
