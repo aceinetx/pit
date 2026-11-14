@@ -42,7 +42,7 @@ fn replace(allocator: std.mem.Allocator, arg: expr.ExprVariable, body: *expr.Exp
             }
 
             const unambigous_name = try allocator.alloc(u8, function.arg.name.len + 1);
-            errdefer allocator.free(unambigous_name);
+            defer allocator.free(unambigous_name);
 
             @memcpy(unambigous_name[0..function.arg.name.len], function.arg.name);
             unambigous_name[function.arg.name.len] = '\'';
@@ -366,7 +366,6 @@ test "Reduce 16 (church numerals 2 - 1)" {
 
     // (\f.\x.f x)
 
-    root.dump(0);
     try std.testing.expectEqualStrings("f", root.function.arg.name);
     try std.testing.expectEqualStrings("x", root.function.expr.function.arg.name);
     try std.testing.expectEqualStrings("f", root.function.expr.function.expr.application.lhs.variable.name);
@@ -386,8 +385,7 @@ test "Reduce 17 (Y combinator countdown)" {
     );
     defer root.deinit(allocator, true);
 
-    try beta_reduce_all_the_way(allocator, root, .{ .debug = true });
+    try beta_reduce_all_the_way(allocator, root, .{});
 
-    root.dump(0);
     try std.testing.expectEqualStrings("OK", root.variable.name);
 }
