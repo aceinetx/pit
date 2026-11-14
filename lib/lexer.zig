@@ -20,6 +20,10 @@ pub const Token = union(enum) {
 
 pub const Error = error{InvalidToken} || std.mem.Allocator.Error;
 
+inline fn is_identchar(c: u8) bool {
+    return std.ascii.isAlphanumeric(c) or c == '_';
+}
+
 fn next(code: []const u8, pos: *usize) Error!Token {
     while (pos.* < code.len) {
         inline for (
@@ -36,10 +40,10 @@ fn next(code: []const u8, pos: *usize) Error!Token {
             }
         }
 
-        if (std.ascii.isAlphabetic(code[pos.*])) {
+        if (is_identchar(code[pos.*])) {
             const start = pos.*;
 
-            while (pos.* < code.len and std.ascii.isAlphabetic(code[pos.*])) {
+            while (pos.* < code.len and is_identchar(code[pos.*])) {
                 pos.* += 1;
             }
 
