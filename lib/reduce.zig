@@ -47,17 +47,14 @@ fn replace(allocator: std.mem.Allocator, arg: expr.ExprVariable, body: *expr.Exp
             @memcpy(unambigous_name[0..function.arg.name.len], function.arg.name);
             unambigous_name[function.arg.name.len] = '\'';
 
-            const variable = try allocator.create(expr.Expr);
-            defer variable.deinit(allocator, true);
-
-            variable.* = .{
+            var variable: expr.Expr = .{
                 .variable = .{
                     .name = unambigous_name,
                     .static = false,
                 },
             };
 
-            try replace(allocator, function.arg, function.expr, variable);
+            try replace(allocator, function.arg, function.expr, &variable);
             try replace(allocator, arg, function.expr, with);
             function.arg = try variable.variable.dupe(allocator);
         },
