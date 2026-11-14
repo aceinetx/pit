@@ -23,3 +23,20 @@ pub fn readline(allocator: std.mem.Allocator, io: std.Io) ![]u8 {
 
     return slice;
 }
+
+var output_buffer: [512]u8 = @splat(0);
+
+pub fn print(io: std.Io, comptime fmt: []const u8, args: anytype) void {
+    const stdout = std.Io.File.stdout();
+    var writer = stdout.writer(io, &output_buffer);
+    writer.interface.print(fmt, args) catch return;
+    writer.interface.flush() catch {};
+}
+
+pub fn printn(io: std.Io, comptime fmt: []const u8, args: anytype) void {
+    const stdout = std.Io.File.stdout();
+    var writer = stdout.writer(io, &output_buffer);
+    writer.interface.print(fmt, args) catch return;
+    writer.interface.writeByte('\n') catch return;
+    writer.interface.flush() catch {};
+}
