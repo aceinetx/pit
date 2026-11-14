@@ -72,6 +72,7 @@ pub fn beta_reduce(allocator: std.mem.Allocator, ex: *expr.Expr) !bool {
             if (app.lhs.* == .function) {
                 const new = try app.lhs.function.expr.dupe(allocator);
                 defer allocator.destroy(new);
+                errdefer new.deinit(allocator, true);
 
                 try replace(allocator, app.lhs.function.arg, new, app.rhs);
 
