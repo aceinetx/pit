@@ -9,6 +9,11 @@ pub const Error = error{
     UnexpectedToken,
 } || std.mem.Allocator.Error || std.mem.PrintError;
 
+pub const Diagnostics = struct {
+    _message_buffer: [256]u8 = @splat(0),
+    message: []u8 = &.{},
+};
+
 const Parser = struct {
     const Self = @This();
 
@@ -34,7 +39,7 @@ const Parser = struct {
         return tok;
     }
 
-    fn parse_primary(self: *@This(), diag: []u8) Error!*Expr {
+    fn parse_primary(self: *@This(), diag: *Diagnostics) Error!*Expr {
         const tok = self.next();
         switch (tok) {
             .lparen => {
@@ -77,13 +82,13 @@ const Parser = struct {
                 return expr;
             },
             else => |other| {
-                _ = try std.mem.print(diag, "expected one of: `(`, `\\`, identifier, but found {}", .{other});
+                diag.message = try std.mem.print(&diag._message_buffer, "expected one of: `(`, `\\`, identifier, but found {s}", .{@tagName(other)});
                 return Error.UnexpectedToken;
             },
         }
     }
 
-    fn parse_expr(self: *@This(), diag: []u8) Error!*Expr {
+    fn parse_expr(self: *@This(), diag: *Diagnostics) Error!*Expr {
         var expr = try parse_primary(self, diag);
         errdefer expr.deinit(self.allocator, true);
 
@@ -111,7 +116,7 @@ const Parser = struct {
     pub const parse = parse_expr;
 };
 
-pub fn parse(allocator: std.mem.Allocator, diag: []u8, tokens: []const lexer.Token) Error!*Expr {
+pub fn parse(allocator: std.mem.Allocator, diag: *Diagnostics, tokens: []const lexer.Token) Error!*Expr {
     var parser = Parser.init(allocator, tokens);
     const root = try parser.parse(diag);
 
@@ -122,9 +127,9 @@ pub fn parse_quick(allocator: std.mem.Allocator, code: []const u8) !*Expr {
     var tokens = try lexer.tokenize(allocator, code);
     defer tokens.deinit(allocator);
 
-    var diag: [256]u8 = @splat(0);
+    var diag: Diagnostics = .{};
     const root = parse(allocator, &diag, tokens.items) catch |e| {
-        std.debug.print("parse fail: {s}", .{diag});
+        std.debug.print("parse fail: {s}", .{diag.message});
         return e;
     };
 

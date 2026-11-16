@@ -19,9 +19,9 @@ pub fn main(init: std.process.Init) !void {
         };
         defer tokens.deinit(init.gpa);
 
-        var diag: [256]u8 = @splat(0);
+        var diag: pit.parser.Diagnostics = .{};
         const expr = pit.parser.parse(init.gpa, &diag, tokens.items) catch |e| {
-            console.printn(init.io, "parse fail: {}: {s}", .{ e, diag });
+            console.printn(init.io, "parse fail: {}: {s}", .{ e, diag.message });
             continue;
         };
         defer expr.deinit(init.gpa, true);
