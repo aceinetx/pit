@@ -36,7 +36,11 @@ pub fn main(init: std.process.Init) !void {
             defer sb.deinit(init.gpa);
 
             if (root.display(init.gpa, &sb)) |_| {
-                console.printn(init.io, "{s}", .{sb.items});
+                if (pit.church_numerals.get_church_numeral_from_expr(root)) |n| {
+                    console.printn(init.io, "{s} ({} in church numerals)", .{ sb.items, n });
+                } else {
+                    console.printn(init.io, "{s}", .{sb.items});
+                }
             } else |_| {}
         }
     }
