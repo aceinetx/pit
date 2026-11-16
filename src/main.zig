@@ -20,13 +20,13 @@ pub fn main(init: std.process.Init) !void {
         defer tokens.deinit(init.gpa);
 
         var diag: [256]u8 = @splat(0);
-        const root = pit.parser.parse(init.gpa, &diag, tokens.items) catch |e| {
+        const expr = pit.parser.parse(init.gpa, &diag, tokens.items) catch |e| {
             console.printn(init.io, "parse fail: {}: {s}", .{ e, diag });
             continue;
         };
-        defer root.deinit(init.gpa, true);
+        defer expr.deinit(init.gpa, true);
 
-        pit.reduce.beta_reduce_all_the_way(init.gpa, root, .{}) catch |e| {
+        pit.reduce.beta_reduce_all_the_way(init.gpa, expr, .{}) catch |e| {
             console.printn(init.io, "beta reduction failed: {}", .{e});
             continue;
         };
@@ -35,12 +35,12 @@ pub fn main(init: std.process.Init) !void {
             var sb = std.ArrayList(u8).empty;
             defer sb.deinit(init.gpa);
 
-            if (root.display(init.gpa, &sb)) |_| {
+            if (expr.display(init.gpa, &sb)) |_| {
                 console.printn(init.io, "{s}", .{sb.items});
-                if (pit.church_numerals.get_church_numeral_from_expr(root)) |n| {
+                if (pit.church_numerals.get_church_numeral_from_expr(expr)) |n| {
                     console.printn(init.io, "(church numeral: {})", .{n});
                 }
-                if (pit.booleans.get_boolean_from_expr(root)) |b| {
+                if (pit.booleans.get_boolean_from_expr(expr)) |b| {
                     console.printn(init.io, "(boolean: {})", .{b});
                 }
             } else |_| {}
