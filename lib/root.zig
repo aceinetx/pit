@@ -5,6 +5,7 @@ pub const reduce = @import("./reduce.zig");
 pub const lexer = @import("./lexer.zig");
 pub const parser = @import("./parser.zig");
 pub const church_numerals = @import("./church_numerals.zig");
+pub const booleans = @import("./booleans.zig");
 
 test {
     std.testing.refAllDecls(expr);
@@ -12,4 +13,5 @@ test {
     std.testing.refAllDecls(lexer);
     std.testing.refAllDecls(parser);
     std.testing.refAllDecls(church_numerals);
+    std.testing.refAllDecls(booleans);
 }

@@ -38,7 +38,7 @@ pub fn get_church_numeral_from_expr(expr: *Expr) ?usize {
     return get_church_numeral_from_function(&expr.function);
 }
 
-test "get_church_numeral_from_function 0" {
+test "get_church_numeral_from_expr 0" {
     const allocator = std.testing.allocator;
 
     const expr = try parser.parse_quick(allocator,
@@ -49,7 +49,7 @@ test "get_church_numeral_from_function 0" {
     try std.testing.expectEqual(2, get_church_numeral_from_expr(expr));
 }
 
-test "get_church_numeral_from_function 1" {
+test "get_church_numeral_from_expr 1" {
     const allocator = std.testing.allocator;
 
     const expr = try parser.parse_quick(allocator,
@@ -60,7 +60,7 @@ test "get_church_numeral_from_function 1" {
     try std.testing.expectEqual(null, get_church_numeral_from_expr(expr));
 }
 
-test "get_church_numeral_from_function 2" {
+test "get_church_numeral_from_expr 2" {
     const allocator = std.testing.allocator;
 
     const expr = try parser.parse_quick(allocator,
