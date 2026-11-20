@@ -3,7 +3,7 @@ const ExprFunction = @import("expr.zig").ExprFunction;
 const Expr = @import("expr.zig").Expr;
 const parser = @import("parser.zig");
 
-pub fn get_church_numeral_from_function(func: *ExprFunction) ?usize {
+pub fn get_church_numeral_from_function(func: *const ExprFunction) ?usize {
     if (func.expr.* != .function) return null;
 
     const f = func.arg;
@@ -32,7 +32,7 @@ pub fn get_church_numeral_from_function(func: *ExprFunction) ?usize {
     return applications;
 }
 
-pub fn get_church_numeral_from_expr(expr: *Expr) ?usize {
+pub fn get_church_numeral_from_expr(expr: *const Expr) ?usize {
     if (expr.* != .function) return null;
 
     return get_church_numeral_from_function(&expr.function);
